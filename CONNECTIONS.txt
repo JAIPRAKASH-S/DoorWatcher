@@ -1,0 +1,15 @@
+LDR to ARDUINO
+oneleg---------5V
+secleg---------A0
+secleg---------10kRESISTOR------GND
+
+ULTRASONIC to ARDUINO
+Vcc------------5V
+GND------------GND
+Trig-----------Digital pin9
+Echo-----------Digital pin10
+
+LED to ARDUINO
+Anode----------Digital pin8 through resistor
+Cathode--------GND
+

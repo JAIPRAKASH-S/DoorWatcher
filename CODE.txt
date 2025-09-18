@@ -1,0 +1,101 @@
+const int trigPin = 9;
+const int echoPin = 10;
+const int ldrPin = A0;
+const int ledPin = 8;
+
+const int ldrThreshold = 600;         // Adjust based on your LDR readings
+const int motionDistance = 50;        // cm threshold for motion
+const unsigned long delayAfterDoorOpen = 5000; // 5 seconds delay
+
+unsigned long doorOpenTimestamp = 0;
+bool doorOpenFlag = false;
+bool ledOn = false;
+
+const int sampleCount = 5;
+
+void setup() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
+  Serial.begin(9600);
+}
+
+long readDistanceOnce() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duration = pulseIn(echoPin, HIGH, 30000);
+  if (duration == 0) return -1; // No echo
+  long distance = duration * 0.034 / 2;
+
+  if (distance < 2 || distance > 400) return -1; // Invalid range
+  return distance;
+}
+
+long readDistanceAverage() {
+  long sum = 0;
+  int validSamples = 0;
+  for (int i = 0; i < sampleCount; i++) {
+    long d = readDistanceOnce();
+    if (d != -1) {
+      sum += d;
+      validSamples++;
+    }
+    delay(50);
+  }
+  if (validSamples == 0) return -1;
+  return sum / validSamples;
+}
+
+void loop() {
+  int ldrValue = analogRead(ldrPin);
+  Serial.print("LDR: ");
+  Serial.print(ldrValue);
+
+  if (ldrValue > ldrThreshold) {  // Door open
+    if (!doorOpenFlag) {
+      doorOpenFlag = true;
+      doorOpenTimestamp = millis();
+      Serial.println(" | Door opened, timer started");
+    } else {
+      unsigned long elapsed = millis() - doorOpenTimestamp;
+      Serial.print(" | Time open: ");
+      Serial.print(elapsed);
+
+      // Only check motion if LED is off (to prevent re-checking if already on)
+      if (!ledOn && elapsed >= delayAfterDoorOpen) {
+        long distance = readDistanceAverage();
+        Serial.print(" | Avg Distance: ");
+        Serial.print(distance);
+
+        if (distance != -1 && distance < motionDistance) {
+          digitalWrite(ledPin, HIGH);
+          ledOn = true;
+          Serial.println(" | Motion detected - LED ON");
+        } else {
+          Serial.println(" | No motion");
+        }
+      } else if (ledOn) {
+        Serial.println(" | LED already ON");
+      } else {
+        Serial.println(" | Waiting for 5s delay");
+      }
+    }
+  } else {
+    // Door closed — reset everything and turn off LED
+    if (doorOpenFlag || ledOn) {
+      Serial.println(" | Door closed - reset LED and states");
+      digitalWrite(ledPin, LOW);
+      ledOn = false;
+      doorOpenFlag = false;
+    } else {
+      Serial.println();
+    }
+  }
+
+  delay(200);
+}
