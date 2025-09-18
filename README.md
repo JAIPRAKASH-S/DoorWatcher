@@ -1,7 +1,7 @@
 # DoorWatcher
 🛠️ Solving a Real Hostel Problem 
 
-I'm a student at SSN College of Engineering, staying in the hostel. With the rainy season approaching, mosquitoes have started entering rooms more frequently — especially at night.
+I'm a engineering student , staying in the hostel. With the rainy season approaching, mosquitoes have started entering rooms more frequently — especially at night.
 
 One night, I woke up due to a mosquito bite and realized the reason — my friend had come into my room and left without closing the door. He does this often, and that’s how mosquitoes keep getting in.
 
